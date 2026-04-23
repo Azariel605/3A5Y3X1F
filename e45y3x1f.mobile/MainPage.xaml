@@ -2,62 +2,41 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="e45y3x1f.mobile.MainPage"
-             Title="Easy EXIF - Mobile"
-             BackgroundColor="#FFF4EA">
+             Title="Easy EXIF - Mobile">
     
-    <Grid RowDefinitions="Auto,Auto,*,Auto" Padding="15" RowSpacing="10">
+    <VerticalStackLayout Spacing="10" Padding="15">
         
         <!-- Header -->
-        <VerticalStackLayout Grid.Row="0" Spacing="5">
-            <Label Text="Easy EXIF Mobile" FontSize="24" FontAttributes="Bold" TextColor="#333"/>
-            <Label Text="Extract and view image metadata" FontSize="14" TextColor="#666"/>
-        </VerticalStackLayout>
+        <Label Text="Easy EXIF Mobile" FontSize="24" FontAttributes="Bold"/>
+        <Label Text="Extract and view image metadata" FontSize="14"/>
 
-        <!-- Image Preview & Selection -->
-        <Border Grid.Row="1" Stroke="#CCC" StrokeThickness="1" Padding="0" CornerRadius="8">
-            <Grid ColumnDefinitions="*,Auto" Padding="10">
-                <Label Text="No image selected" x:Name="ImageStatusLabel" VerticalTextAlignment="Center" FontSize="14"/>
-                <Button Grid.Column="1" Text="Select Image" Clicked="OnSelectImage" Padding="10,5" FontSize="12"/>
-            </Grid>
-        </Border>
-
-        <!-- Options & Extraction -->
-        <ScrollView Grid.Row="2">
-            <VerticalStackLayout Spacing="10">
-                
-                <!-- Exiftool Options Section -->
-                <VerticalStackLayout Spacing="5">
-                    <Label Text="Exiftool Options" FontSize="14" FontAttributes="Bold"/>
-                    <Entry x:Name="OptionsEntry" 
-                           Text="-json -a -G -ee"
-                           Placeholder="e.g. -json -a -G -ee"
-                           BorderWidth="1"
-                           BorderColor="#CCC"
-                           Padding="8"/>
-                    <Label Text="Example: -json -a -G -ee -n" FontSize="12" TextColor="#999"/>
-                </VerticalStackLayout>
-
-                <!-- EXIF Data Display -->
-                <VerticalStackLayout Spacing="5">
-                    <Label Text="Extracted EXIF Data" FontSize="14" FontAttributes="Bold"/>
-                    <Editor x:Name="ExifDataEditor"
-                            IsReadOnly="True"
-                            HeightRequest="200"
-                            FontSize="12"
-                            Text="[Select an image and click View EXIF to extract metadata]"
-                            BorderWidth="1"
-                            BorderColor="#CCC"
-                            Padding="8"/>
-                </VerticalStackLayout>
-                
-            </VerticalStackLayout>
-        </ScrollView>
-
-        <!-- Action Buttons -->
-        <HorizontalStackLayout Grid.Row="3" Spacing="8" HorizontalOptions="Fill">
-            <Button Text="View EXIF" Clicked="OnViewExif" HorizontalOptions="FillAndExpand" BackgroundColor="#0066CC" TextColor="White" Padding="10" FontSize="14"/>
-            <Button Text="Clear" Clicked="OnClear" HorizontalOptions="FillAndExpand" BackgroundColor="#999" TextColor="White" Padding="10" FontSize="14"/>
+        <!-- Image Selection -->
+        <HorizontalStackLayout Spacing="10">
+            <Label Text="No image selected" x:Name="ImageStatusLabel" VerticalTextAlignment="Center" FontSize="14"/>
+            <Button Text="Select Image" Clicked="OnSelectImage"/>
         </HorizontalStackLayout>
 
-    </Grid>
+        <!-- Exiftool Options -->
+        <Label Text="Exiftool Options" FontSize="14" FontAttributes="Bold"/>
+        <Entry x:Name="OptionsEntry" 
+               Text="-json -a -G -ee"
+               Placeholder="e.g. -json -a -G -ee"/>
+        <Label Text="Example: -json -a -G -ee -n" FontSize="12"/>
+
+        <!-- EXIF Data Display -->
+        <Label Text="Extracted EXIF Data" FontSize="14" FontAttributes="Bold"/>
+        <Editor x:Name="ExifDataEditor"
+                IsReadOnly="True"
+                HeightRequest="200"
+                FontSize="12"
+                Text="[Select an image and click View EXIF to extract metadata]"/>
+
+        <!-- Action Buttons -->
+        <HorizontalStackLayout Spacing="8">
+            <Button Text="View EXIF" Clicked="OnViewExif" HorizontalOptions="FillAndExpand"/>
+            <Button Text="Clear" Clicked="OnClear" HorizontalOptions="FillAndExpand"/>
+        </HorizontalStackLayout>
+        
+    </VerticalStackLayout>
+
 </ContentPage>
