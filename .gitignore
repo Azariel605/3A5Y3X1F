@@ -1,0 +1,52 @@
+# Build artifacts
+bin/
+obj/
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Visual Studio cache/options
+.vs/
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# Rider
+.idea/
+*.sln.iml
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+
+# Generated files
+*.g.cs
+*.g.i.cs
+
+# Test Results
+TestResults/
+
+# Local environment files
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
