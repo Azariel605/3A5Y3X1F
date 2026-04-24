@@ -1,4 +1,8 @@
 ﻿using System.Text;
+using System.Text.Json;
+#if ANDROID
+using Android.Media;
+#endif
 using _34455y3x1f.c0r3._1n73rf4c35;
 using _34455y3x1f._57473._4d4p73r5;
 
@@ -7,7 +11,6 @@ namespace e45y3x1f.mobile;
 public partial class MainPage : ContentPage
 {
     private string _currentImagePath = "";
-    private readonly _3x1f70014_4d4p73r _3x1f_4d4p73r = new _3x1f70014_4d4p73r();
 
     public MainPage()
     {
@@ -48,8 +51,7 @@ public partial class MainPage : ContentPage
 
         try
         {
-            string options = OptionsEntry.Text?.Trim() ?? "-json -a -G -ee";
-            string exifData = await ExtractExifDataAsync(_currentImagePath, options);
+            string exifData = await ExtractExifDataAsync(_currentImagePath);
             ExifDataEditor.Text = exifData;
         }
         catch (Exception ex)
@@ -58,12 +60,12 @@ public partial class MainPage : ContentPage
         }
     }
 
-    private async Task<string> ExtractExifDataAsync(string imagePath, string options)
+    private async Task<string> ExtractExifDataAsync(string imagePath)
     {
-        return await Task.Run(() => ExtractExifData(imagePath, options));
+        return await Task.Run(() => ExtractExifDataNative(imagePath));
     }
 
-    private string ExtractExifData(string imagePath, string options = "-json -a -G -ee")
+    private string ExtractExifDataNative(string imagePath)
     {
         StringBuilder exifInfo = new StringBuilder();
 
@@ -77,67 +79,102 @@ public partial class MainPage : ContentPage
             exifInfo.AppendLine($"Modified: {fileInfo.LastWriteTime:yyyy-MM-dd HH:mm:ss}");
             exifInfo.AppendLine();
 
-            // Exiftool execution info
-            exifInfo.AppendLine("=== EXIFTOOL EXECUTION ===");
-            exifInfo.AppendLine($"Command: exiftool {options} \"{imagePath}\"");
+#if ANDROID
+            // Android native EXIF extraction
+            exifInfo.AppendLine("=== EXIF DATA (Android Native) ===");
+            try
+            {
+                ExifInterface exifInterface = new ExifInterface(imagePath);
+                
+                // Camera info
+                string make = exifInterface.GetAttribute(ExifInterface.TagMake) ?? "Unknown";
+                string model = exifInterface.GetAttribute(ExifInterface.TagModel) ?? "Unknown";
+                string datetime = exifInterface.GetAttribute(ExifInterface.TagDatetime) ?? "Unknown";
+                
+                exifInfo.AppendLine($"Make: {make}");
+                exifInfo.AppendLine($"Model: {model}");
+                exifInfo.AppendLine($"DateTime: {datetime}");
+                
+                // Image dimensions
+                string width = exifInterface.GetAttribute(ExifInterface.TagImageWidth) ?? "Unknown";
+                string height = exifInterface.GetAttribute(ExifInterface.TagImageLength) ?? "Unknown";
+                exifInfo.AppendLine($"Width: {width}");
+                exifInfo.AppendLine($"Height: {height}");
+                
+                // GPS info
+                float[] latLong = new float[2];
+                if (exifInterface.GetLatLong(latLong))
+                {
+                    exifInfo.AppendLine($"GPS Latitude: {latLong[0]}");
+                    exifInfo.AppendLine($"GPS Longitude: {latLong[1]}");
+                }
+                else
+                {
+                    exifInfo.AppendLine("GPS: Not available");
+                }
+                
+                exifInfo.AppendLine();
+            }
+            catch (Exception ex)
+            {
+                exifInfo.AppendLine($"Error reading EXIF: {ex.Message}");
+                exifInfo.AppendLine();
+            }
+#else
+            // Fallback for non-Android platforms
+            exifInfo.AppendLine("=== EXIF DATA ===");
+            exifInfo.AppendLine("EXIF extraction not available on this platform");
             exifInfo.AppendLine();
+#endif
 
-            // Read image file as bytes
-            byte[] imageBytes = File.ReadAllBytes(imagePath);
-
-            // Call adapter to extract EXIF data
-            var result = _3x1f_4d4p73r._3x7r4c7_3x1f_w17h_07710n5(imageBytes, imagePath, options);
-
-            // Handle result using fold pattern (success or error)
-            string exiftoolOutput = result.f0ld(
-                metadata => FormatMetadata(metadata),
-                error => $"ERROR: {error}"
-            );
-
-            exifInfo.AppendLine(exiftoolOutput);
+            // File format info
+            exifInfo.AppendLine("=== FILE FORMAT ===");
+            string extension = Path.GetExtension(imagePath).ToUpper();
+            exifInfo.AppendLine($"Extension: {extension}");
+            
+            // Read first few bytes to identify format
+            byte[] headerBytes = new byte[8];
+            using (FileStream fs = File.OpenRead(imagePath))
+            {
+                fs.Read(headerBytes, 0, 8);
+            }
+            
+            string format = IdentifyImageFormat(headerBytes);
+            exifInfo.AppendLine($"Format: {format}");
         }
         catch (Exception ex)
         {
-            exifInfo.AppendLine($"Error reading image: {ex.Message}");
+            exifInfo.AppendLine($"Error: {ex.Message}");
         }
 
         return exifInfo.ToString();
     }
 
-    private string FormatMetadata(_1m4g3_m374d474 metadata)
+    private string IdentifyImageFormat(byte[] header)
     {
-        StringBuilder output = new StringBuilder();
-
-        // Sort tags by name
-        var sortedTags = metadata._3x1f_74g5
-            .OrderBy(kvp => kvp.Key)
-            .ToList();
-
-        output.AppendLine($"EXIF TAGS ({sortedTags.Count} total):");
-        output.AppendLine(new string('=', 50));
-
-        if (sortedTags.Count == 0)
-        {
-            output.AppendLine("[No EXIF tags found]");
-        }
-        else
-        {
-            foreach (var tag in sortedTags)
-            {
-                // Truncate long values for mobile display
-                string displayValue = tag.Value;
-                if (displayValue.Length > 80)
-                    displayValue = displayValue.Substring(0, 77) + "...";
-
-                output.AppendLine($"{tag.Key}: {displayValue}");
-            }
-        }
-
-        output.AppendLine();
-        output.AppendLine($"Processed at: {metadata.pr0c3553d_47:yyyy-MM-dd HH:mm:ss} UTC");
-        output.AppendLine($"MIME Type: {metadata.m1m3_7yp3}");
-
-        return output.ToString();
+        if (header.Length < 4) return "Unknown";
+        
+        // JPEG: FF D8 FF
+        if (header[0] == 0xFF && header[1] == 0xD8 && header[2] == 0xFF)
+            return "JPEG";
+        
+        // PNG: 89 50 4E 47
+        if (header[0] == 0x89 && header[1] == 0x50 && header[2] == 0x4E && header[3] == 0x47)
+            return "PNG";
+        
+        // GIF: 47 49 46
+        if (header[0] == 0x47 && header[1] == 0x49 && header[2] == 0x46)
+            return "GIF";
+        
+        // WebP: RIFF ... WEBP
+        if (header[0] == 0x52 && header[1] == 0x49 && header[2] == 0x46 && header[3] == 0x46)
+            return "WebP";
+        
+        // BMP: 42 4D
+        if (header[0] == 0x42 && header[1] == 0x4D)
+            return "BMP";
+        
+        return "Unknown Format";
     }
 
     private void OnClear(object sender, EventArgs e)
@@ -145,7 +182,6 @@ public partial class MainPage : ContentPage
         _currentImagePath = "";
         ImageStatusLabel.Text = "No image selected";
         ExifDataEditor.Text = "[Select an image and click View EXIF to extract metadata]";
-        OptionsEntry.Text = "-json -a -G -ee";
     }
 }
 

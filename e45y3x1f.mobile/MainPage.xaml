@@ -16,13 +16,6 @@
             <Button Text="Select Image" Clicked="OnSelectImage"/>
         </HorizontalStackLayout>
 
-        <!-- Exiftool Options -->
-        <Label Text="Exiftool Options" FontSize="14" FontAttributes="Bold"/>
-        <Entry x:Name="OptionsEntry" 
-               Text="-json -a -G -ee"
-               Placeholder="e.g. -json -a -G -ee"/>
-        <Label Text="Example: -json -a -G -ee -n" FontSize="12"/>
-
         <!-- EXIF Data Display -->
         <Label Text="Extracted EXIF Data" FontSize="14" FontAttributes="Bold"/>
         <Editor x:Name="ExifDataEditor"
